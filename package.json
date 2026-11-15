@@ -1,0 +1,6 @@
+{
+  "name":"honeymoon-archive",
+  "private":true,
+  "version":"1.0.0",
+  "scripts":{"test":"node tests/verify.mjs && node tests/client.mjs","build":"node scripts/build.mjs"}
+}

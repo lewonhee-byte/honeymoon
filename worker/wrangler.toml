@@ -1,0 +1,10 @@
+name = "honeymoon-archive-api"
+main = "index.mjs"
+compatibility_date = "2026-11-01"
+[vars]
+SITE_URL = "https://lewonhee-byte.github.io/honeymoon/"
+REPO = "lewonhee-byte/honeymoon"
+BRANCH = "main"
+ADMIN_LOGINS = "lewonhee-byte"
+GITHUB_CLIENT_ID = "YOUR_OAUTH_CLIENT_ID"
+# Secrets: GITHUB_CLIENT_SECRET, SESSION_SECRET, REPO_TOKEN

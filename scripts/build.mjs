@@ -1,0 +1,1 @@
+import fs from 'node:fs';fs.mkdirSync('dist',{recursive:true});for(const p of ['index.html','config.js','css','js','data','images'])fs.cpSync(p,'dist/'+p,{recursive:true});fs.writeFileSync('dist/.nojekyll','');
