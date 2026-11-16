@@ -11,26 +11,57 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
-  initialize:
+  import:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Import initial source package
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Apply authorized project update
         shell: bash
         run: |
-          if [ -f source.zip ] && [ ! -f package.json ]; then
-            unzip -o source.zip
-            git rm source.zip
-            git config user.name "github-actions[bot]"
-            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add index.html config.js css js data images scripts tests worker README.md VERIFICATION.md package.json .gitignore
-            git commit -m "Import complete honeymoon archive source"
+          if [ -f project-update.zip ]; then
+            python3 - <<'PY'
+          import zipfile, re
+          with zipfile.ZipFile('project-update.zip') as z:
+              for i in z.infolist():
+                  if i.is_dir():
+                      continue
+                  if not re.fullmatch(r'(?:index\.html|config\.js|README\.md|VERIFICATION\.md|package\.json|\.gitignore|(?:css|js|data|images|scripts|tests)/[A-Za-z0-9_.-]+)', i.filename):
+                      raise ValueError('Unexpected project path: '+i.filename)
+              z.extractall('.')
+          PY
+            git rm project-update.zip
+            git rm -r --ignore-unmatch worker
+          fi
+      - name: Validate and apply travel upload
+        shell: bash
+        run: |
+          if [ -f archive-update.zip ]; then
+            node scripts/import-update.mjs archive-update.zip
+            git rm archive-update.zip
+          fi
+      - name: Validate project
+        run: |
+          node tests/verify.mjs
+          node tests/client.mjs
+      - name: Commit validated data and photos
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html config.js css js data images scripts tests README.md VERIFICATION.md package.json .gitignore
+          if ! git diff --cached --quiet; then
+            git commit -m "Apply validated archive update"
             git push origin HEAD:main
           fi
   deploy:
-    needs: initialize
+    needs: import
     runs-on: ubuntu-latest
     environment:
       name: github-pages
