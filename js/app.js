@@ -3,7 +3,7 @@
 (async ()=>{
 'use strict';
 const embedded=document.getElementById('archive-data');
-let initial=JSON.parse(embedded.textContent);try{const r=await fetch('data/travel.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);initial=await r.json();window.Archive.validate(initial)}catch(e){console.warn('초기 내장 데이터 사용',e)}
+let initial=JSON.parse(embedded.textContent);try{const r=await fetch('data/travel.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const published=await r.text();initial=JSON.parse(published);window.Archive.publishedText=published;window.Archive.validate(initial)}catch(e){console.warn('초기 내장 데이터 사용',e)}
 let state=initial;
 const base=JSON.parse(embedded.textContent);
 const STORE='honeymoon-cinematic-archive-v9:'+location.pathname;
@@ -537,7 +537,7 @@ function expenseModal(){
 }
 function downloadBlob(name,mime,content){const blob=new Blob([content],{type:mime});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 async function exportHTML(){
-try{const clone=document.documentElement.cloneNode(true);clone.querySelector('#archiveBar')?.remove();clone.querySelector('body').classList.remove('editing','copy-editing','u-picking','archive-admin');clone.querySelector('#modalWrap')?.classList.remove('open');clone.querySelector('#modalBody').innerHTML='';clone.querySelector('#archive-data').textContent=JSON.stringify(state).replace(/</g,'\\u003c');
+try{const clone=document.documentElement.cloneNode(true);clone.querySelector('#archiveBar')?.remove();clone.querySelector('#manualSaveHelp')?.remove();clone.querySelector('body').classList.remove('editing','copy-editing','u-picking','archive-admin');clone.querySelector('#modalWrap')?.classList.remove('open');clone.querySelector('#modalBody').innerHTML='';clone.querySelector('#archive-data').textContent=JSON.stringify(state).replace(/</g,'\\u003c');
 for(const link of clone.querySelectorAll('link[rel="stylesheet"]')){const r=await fetch(link.href);if(!r.ok)throw Error('CSS');const style=document.createElement('style');style.textContent=await r.text();link.replaceWith(style)}
 for(const script of clone.querySelectorAll('script[src]')){const r=await fetch(script.src);if(!r.ok)throw Error('JS');const text=await r.text();script.removeAttribute('src');script.textContent=text.replace(/<\/script/gi,'<\\/script')}
 let html='<!doctype html>\n'+clone.outerHTML;const names=[...new Set(html.match(/images\/[a-f0-9]+\.(?:jpg|png|webp|gif)/g)||[])];for(const name of names){const r=await fetch(name);if(!r.ok)throw Error(name);const blob=await r.blob();const data=await new Promise((ok,no)=>{const f=new FileReader();f.onload=()=>ok(f.result);f.onerror=no;f.readAsDataURL(blob)});html=html.split(name).join(data)}downloadBlob('우리의_신혼여행_전체백업.html','text/html;charset=utf-8',html);toast('사진과 코드가 포함된 HTML 백업을 저장했습니다.')

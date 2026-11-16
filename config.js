@@ -1,1 +1,1 @@
-window.ARCHIVE_CONFIG={api:"",history:"https://github.com/lewonhee-byte/honeymoon/commits/main/data/travel.json"};
+window.ARCHIVE_CONFIG={mode:"manual",upload:"https://github.com/lewonhee-byte/honeymoon/upload/main",actions:"https://github.com/lewonhee-byte/honeymoon/actions",history:"https://github.com/lewonhee-byte/honeymoon/commits/main/data/travel.json"};
